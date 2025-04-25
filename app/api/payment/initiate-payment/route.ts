@@ -2,23 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 
 async function getAuthToken() {
-  const response = await fetch(
-    `${process.env.EJARA_MOMO_PAYMENT_SANDBOX_URL}/api/v1/accounts/authenticate`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "client-secret": process.env.EJARA_MOMO_CLIENT_SECRET!,
-        "client-key": process.env.EJARA_MOMO_CLIENT_KEY!,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Authentication failed");
-  }
-  const data = await response.json();
-  return data.token;
+    try {
+        const response = await fetch(
+          `${process.env.EJARA_MOMO_PAYMENT_SANDBOX_URL}/api/v1/accounts/authenticate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "client-secret": process.env.EJARA_MOMO_CLIENT_SECRET!,
+              "client-key": process.env.EJARA_MOMO_CLIENT_KEY!,
+            },
+          }
+        );
+    
+        const data = await response.json();
+        console.log("Authentication response:", data);
+    
+        return data.data;
+    
+      } catch (error) {
+        return NextResponse.json(
+          { error: "Failed to authenticate" },
+          { status: 500 }
+        );
+      }
 }
 
 export async function POST(request: NextRequest) {
@@ -30,13 +37,15 @@ export async function POST(request: NextRequest) {
 
   try {
     // Get authentication token
-    const token = await getAuthToken();
+    const authResponse = await getAuthToken();
+    const token = authResponse?.accessToken;
+    console.log("Token:", token);
 
     const body = await request.json();
     const payload = {
       phoneNumber: body.phoneNumber,
       transactionType: "payin",
-      amount: body.amount,
+      amount: body.amount as string,
       fullName: body.fullName,
       emailAddress: body.emailAddress,
       currencyCode: body.currencyCode || "XAF",
@@ -52,7 +61,10 @@ export async function POST(request: NextRequest) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+          "client-secret": process.env.EJARA_MOMO_CLIENT_SECRET!,
+          "client-key": process.env.EJARA_MOMO_CLIENT_KEY!,
         },
         body: JSON.stringify(payload),
       }

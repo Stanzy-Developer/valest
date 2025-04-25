@@ -15,9 +15,10 @@ export async function POST() {
     );
 
     const data = await response.json();
+    console.log("Authentication response:", data);
 
     return NextResponse.json(data);
-    
+
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to authenticate" },
