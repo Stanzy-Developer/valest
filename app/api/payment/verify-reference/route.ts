@@ -22,7 +22,7 @@ async function getAuthToken() {
 
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to authenticate" },
+      { error: "Failed to authenticate"+error },
       { status: 500 }
     );
   }
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to verify transaction" },
+      { error: "Failed to verify transaction: "+error },
       { status: 500 }
     );
   }

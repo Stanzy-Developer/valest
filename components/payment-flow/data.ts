@@ -13,8 +13,10 @@ export interface CryptoData {
   price: number
   priceChangePercentage24h: number
 }
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface CoinGeckoResponse {
+  current_price: any
+  price_change_percentage_24h: any
   id: string
   symbol: string
   name: string
