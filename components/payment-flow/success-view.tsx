@@ -6,7 +6,6 @@ export function SuccessView() {
   const { 
     selectedCurrency, 
     dataSource, 
-    setStage,
     amount,
     phoneNumber,
     resetPayment

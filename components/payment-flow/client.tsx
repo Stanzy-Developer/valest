@@ -10,14 +10,14 @@ import { fetchCryptoData } from "@/services/crypto";
 import { fallbackCryptoData } from "./data";
 
 export default function PaymentFlowClient() {
-  const { 
-    stage, 
-    setCryptoData, 
-    setLoading, 
-    setError, 
-    setBtcPrice, 
-    setExchangeRates, 
-    setDataSource 
+  const {
+    stage,
+    setCryptoData,
+    setLoading,
+    setError,
+    setBtcPrice,
+    setExchangeRates,
+    setDataSource,
   } = usePaymentStore();
 
   // Fetch exchange rates

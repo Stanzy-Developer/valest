@@ -1,25 +1,25 @@
-import { z } from "zod";
+import { z } from "zod"
 
 export interface Currency {
-  code: string;
-  symbol: string;
-  name: string;
+  code: string
+  symbol: string
+  name: string
 }
 
 export interface CryptoData {
-  id: string;
-  symbol: string;
-  name: string;
-  price: number;
-  priceChangePercentage24h: number;
+  id: string
+  symbol: string
+  name: string
+  price: number
+  priceChangePercentage24h: number
 }
 
 export interface CoinGeckoResponse {
-  id: string;
-  symbol: string;
-  name: string;
-  current_price: number;
-  price_change_percentage_24h: number;
+  id: string
+  symbol: string
+  name: string
+  current_price: number
+  price_change_percentage_24h: number
 }
 
 export const currencies: Currency[] = [
@@ -28,7 +28,7 @@ export const currencies: Currency[] = [
   { code: "USD", symbol: "$", name: "US Dollar" },
   { code: "NGN", symbol: "₦", name: "Nigerian Naira" },
   { code: "GHS", symbol: "GH₵", name: "Ghanaian Cedi" },
-];
+]
 
 export const paymentFormSchema = z.object({
   amount: z
@@ -44,9 +44,9 @@ export const paymentFormSchema = z.object({
     .regex(/^\+?[0-9]{8,}$/, "Invalid phone number"),
   motif: z.string().min(1, "Payment reason is required"),
   email: z.string().email("Invalid email").min(1, "Email is required"),
-});
+})
 
-export type PaymentFormValues = z.infer<typeof paymentFormSchema>;
+export type PaymentFormValues = z.infer<typeof paymentFormSchema>
 
 export const fallbackCryptoData: CryptoData[] = [
   {
@@ -70,4 +70,14 @@ export const fallbackCryptoData: CryptoData[] = [
     price: 312.45,
     priceChangePercentage24h: -0.5,
   },
-];
+]
+
+// Add the missing PaymentStage type and PAYMENT_STAGES object
+export type PaymentStage = "FORM" | "PROCESSING" | "SUCCESS" | "ERROR"
+
+export const PAYMENT_STAGES = {
+  FORM: "FORM" as const,
+  PROCESSING: "PROCESSING" as const,
+  SUCCESS: "SUCCESS" as const,
+  ERROR: "ERROR" as const,
+}

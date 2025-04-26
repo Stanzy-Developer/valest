@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,11 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  PaymentFormValues,
-  currencies,
-  paymentFormSchema,
-} from "./data";
+import { PaymentFormValues, currencies, paymentFormSchema } from "./data";
 import { usePaymentStore } from "@/store/payment";
 import { convertAmountToBtc } from "@/services/crypto";
 import { CryptoMarquee } from "./crypto-marquee";
@@ -33,9 +29,9 @@ interface PaymentFormProps {
 }
 
 export function PaymentForm({ onSuccess }: PaymentFormProps) {
-  const { 
-    setStage, 
-    setInvoice, 
+  const {
+    setStage,
+    setInvoice,
     selectedCurrency,
     setSelectedCurrency,
     exchangeRates,
@@ -43,7 +39,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
     setSatsAmount,
     dataSource,
     setAmount,
-    setPhoneNumber
+    setPhoneNumber,
   } = usePaymentStore();
 
   const form = useForm<PaymentFormValues>({
@@ -60,7 +56,8 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
   // Update selected currency when currency field changes
   useEffect(() => {
     const currencyValue = form.watch("currency");
-    const newCurrency = currencies.find((c) => c.code === currencyValue) || currencies[0];
+    const newCurrency =
+      currencies.find((c) => c.code === currencyValue) || currencies[0];
     setSelectedCurrency(newCurrency);
   }, [form.watch("currency"), setSelectedCurrency]);
 
@@ -70,28 +67,82 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
     const currencyValue = form.watch("currency");
 
     if (amountValue && currencyValue) {
-      convertAmountToBtc(amountValue, currencyValue, exchangeRates, btcPrice)
-        .then(setSatsAmount);
+      convertAmountToBtc(
+        amountValue,
+        currencyValue,
+        exchangeRates,
+        btcPrice
+      ).then(setSatsAmount);
     } else {
       setSatsAmount(0);
     }
-  }, [form.watch("amount"), form.watch("currency"), btcPrice, exchangeRates, setSatsAmount]);
+  }, [
+    form.watch("amount"),
+    form.watch("currency"),
+    btcPrice,
+    exchangeRates,
+    setSatsAmount,
+  ]);
 
   async function onSubmit(values: PaymentFormValues) {
     // Store the values in the global state
     setAmount(values.amount);
     setPhoneNumber(values.phoneNumber);
-    
+
     try {
-      // TODO: Add API call to create invoice here
-      setInvoice("woeydcrjqf127394782427x942022..."); // Temporary mock invoice
-      setStage("qrcode");
-      onSuccess?.();
+      // Call the API to create an invoice
+      const response = await fetch("/api/lnbtc-invoice/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: values.amount,
+          description: values.motif || "Payment via Valest",
+          reference: values.phoneNumber,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create invoice");
+      }
+
+      const responseData = await response.json();
+      console.log("Invoice response:", responseData);
+
+      if (responseData.message === "Successful" && responseData.data) {
+        const { data } = responseData;
+
+        // Store the invoice hash for the QR code component to use
+        setInvoice(data.invoiceHash);
+
+        // If you need to store the complete invoice data in a structured way:
+        // Format API response to match the expected InvoiceData structure
+        // Note: For this to work properly, usePaymentStore should expose setInvoiceData
+        // const formattedInvoice = {
+        //   id: data.invoiceReferenceId,
+        //   paymentRequest: data.invoiceHash,
+        //   amount: data.originalAmount,
+        //   amountCurrency: data.amountCurrency,
+        //   description: data.description,
+        //   reference: data.reference,
+        //   expiresAt: data.expiryDate,
+        //   status: data.status,
+        //   createdAt: new Date().toISOString(),
+        // };
+        // usePaymentStore.getState().setInvoiceData(formattedInvoice);
+
+        setStage("qrcode");
+        onSuccess?.();
+      } else {
+        throw new Error("Invalid response format from invoice API");
+      }
     } catch (error) {
       console.error("Failed to create invoice:", error);
-      form.setError("root", { 
+      form.setError("root", {
         type: "submit",
-        message: "Failed to create payment. Please try again." 
+        message: "Failed to create payment. Please try again.",
       });
     }
   }
@@ -161,10 +212,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
                     </FormControl>
                     <SelectContent>
                       {currencies.map((currency) => (
-                        <SelectItem
-                          key={currency.code}
-                          value={currency.code}
-                        >
+                        <SelectItem key={currency.code} value={currency.code}>
                           <div className="flex items-center gap-2">
                             <span>{currency.symbol}</span>
                             <span>{currency.code}</span>
@@ -200,10 +248,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
               <FormItem>
                 <FormLabel>Motif</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="What is this payment for?"
-                    {...field}
-                  />
+                  <Input placeholder="What is this payment for?" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
