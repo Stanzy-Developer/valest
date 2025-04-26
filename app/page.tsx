@@ -1,9 +1,14 @@
-import React from 'react'
+import Hero  from "@/components/landing/hero";
+import { Logos } from "@/components/landing/Logos";
+import Image from "next/image";
 
 function page() {
   return (
-    <div>page</div>
-  )
+      <main className="">
+        <Hero />
+        <Logos />
+      </main>
+  );
 }
 
 export default page
