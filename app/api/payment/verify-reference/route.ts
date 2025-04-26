@@ -56,8 +56,8 @@ export async function POST(req: NextRequest) {
     if (verificationData.data.status === "confirmed") {
       // Send SMS notification
       await sendSMS(
-        "ReachDem",
-        `You have received ${verificationData.data.amount} ${verificationData.data.currencyCode} has been confirmed.\nValest!`,
+        "Valest",
+        `Payment of ${verificationData.data.amount} ${verificationData.data.currencyCode} has been confirmed. Thank you for using Valest!`,
         verificationData.data.phoneNumber
       );
 

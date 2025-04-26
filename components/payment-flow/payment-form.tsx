@@ -215,7 +215,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmitPayment)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="flex justify-center gap-4">
             <FormField
               control={form.control}
@@ -321,7 +321,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
             )}
           />
 
-          <Button type="submit" className="w-full mt-6">
+          <Button type="submit" className="w-full mt-6" onClick={() => handleSubmitPayment()}>
             Confirmer
           </Button>
         </form>

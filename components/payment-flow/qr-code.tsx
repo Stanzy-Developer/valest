@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { usePaymentStore } from "@/store/payment";
 import { useEffect, useState } from "react";
 import { generateQrCodeUrl, formatInvoice } from "@/services/qrcode";
+import { sendSMS } from "@/lib/sms";
 
 interface QRCodeProps {
   onSuccess?: () => void;
@@ -17,6 +18,7 @@ export function QRCode({ onSuccess }: QRCodeProps) {
     dataSource,
     setStage,
     amount,
+    phoneNumber,  // Add phoneNumber from store
   } = usePaymentStore();
 
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
@@ -43,8 +45,15 @@ export function QRCode({ onSuccess }: QRCodeProps) {
     }
   }, [invoice]);
 
-  function simulatePayment() {
+  async function simulatePayment() {
     setStage("success");
+    if (phoneNumber) {
+      await sendSMS(
+        "Valest",
+        `Payment of ${selectedCurrency.symbol}${amount} ${selectedCurrency.code} was successful!. VALEST`,
+        phoneNumber
+      );
+    }
     onSuccess?.();
   }
 

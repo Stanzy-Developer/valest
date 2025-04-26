@@ -49,7 +49,7 @@ const Hero = () => {
     <section className="dark relative border-b border-muted bg-background pt-10 px-4 lg:px-16">
       <FloatingPaths position={1} />
       <FloatingPaths position={-1} />
-      <a href="/payment"className="absolute top-4 right-4 lg:right-8 py-2 px-4 rounded text-primary bg-black">Pay Now</a>
+      <a href="payment"className="absolute z-10 top-4 right-4 lg:right-8 py-2 px-4 rounded text-primary bg-black">Pay Now</a>
       <div className="container">
         <div className="grid grid-cols-1 items-center gap-2 md:gap-4 lg:grid-cols-2">
           <div className="flex w-full max-w-[31.25rem] flex-col gap-9 lg:max-w-[37.5rem] lg:py-[20%] xl:py-[26%]">
