@@ -18,8 +18,12 @@ export interface CoinGeckoResponse {
   id: string
   symbol: string
   name: string
-  current_price: number
-  price_change_percentage_24h: number
+  market_data: {
+    current_price: {
+      usd: number
+    }
+    price_change_percentage_24h: number
+  }
 }
 
 export const currencies: Currency[] = [
@@ -30,20 +34,26 @@ export const currencies: Currency[] = [
   { code: "GHS", symbol: "GH₵", name: "Ghanaian Cedi" },
 ]
 
+// Validation régulière pour le numéro de téléphone
+const phoneRegex = /^\+?[0-9]{8,}$/
+
 export const paymentFormSchema = z.object({
   amount: z
     .string()
-    .min(1, "Amount is required")
+    .min(1, "Le montant est requis")
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Amount must be greater than 0",
+      message: "Le montant doit être supérieur à 0",
     }),
-  currency: z.string().min(1, "Currency is required"),
+  currency: z.string().min(1, "La devise est requise"),
   phoneNumber: z
     .string()
-    .min(1, "Phone number is required")
-    .regex(/^\+?[0-9]{8,}$/, "Invalid phone number"),
-  motif: z.string().min(1, "Payment reason is required"),
-  email: z.string().email("Invalid email").min(1, "Email is required"),
+    .min(1, "Le numéro de téléphone est requis")
+    .regex(phoneRegex, "Numéro de téléphone invalide")
+    .refine((val) => val.replace(/\D/g, "").length >= 9, {
+      message: "Le numéro doit contenir au moins 9 chiffres",
+    }),
+  motif: z.string().min(1, "Le motif du paiement est requis"),
+  email: z.string().email("Email invalide").min(1, "L'email est requis"),
 })
 
 export type PaymentFormValues = z.infer<typeof paymentFormSchema>

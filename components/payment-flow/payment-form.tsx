@@ -23,12 +23,16 @@ import { PaymentFormValues, currencies, paymentFormSchema } from "./data";
 import { usePaymentStore } from "@/store/payment";
 import { convertAmountToBtc } from "@/services/crypto";
 import { CryptoMarquee } from "./crypto-marquee";
+import { useSearchParams } from "next/navigation";
 
 interface PaymentFormProps {
   onSuccess?: () => void;
 }
 
 export function PaymentForm({ onSuccess }: PaymentFormProps) {
+  const searchParams = useSearchParams();
+  const phone = searchParams.get('phone');
+
   const {
     setStage,
     setInvoice,
@@ -47,17 +51,23 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
     defaultValues: {
       amount: "20000",
       currency: "XAF",
-      phoneNumber: "",
+      phoneNumber: phone || "",
       motif: "",
       email: "",
     },
   });
 
+  // Mettre à jour le store avec le numéro de téléphone initial
+  useEffect(() => {
+    if (phone) {
+      setPhoneNumber(phone);
+    }
+  }, [phone, setPhoneNumber]);
+
   // Update selected currency when currency field changes
   useEffect(() => {
     const currencyValue = form.watch("currency");
-    const newCurrency =
-      currencies.find((c) => c.code === currencyValue) || currencies[0];
+    const newCurrency = currencies.find((c) => c.code === currencyValue) || currencies[0];
     setSelectedCurrency(newCurrency);
   }, [form.watch("currency"), setSelectedCurrency]);
 
@@ -67,22 +77,12 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
     const currencyValue = form.watch("currency");
 
     if (amountValue && currencyValue) {
-      convertAmountToBtc(
-        amountValue,
-        currencyValue,
-        exchangeRates,
-        btcPrice
-      ).then(setSatsAmount);
+      convertAmountToBtc(amountValue, currencyValue, exchangeRates, btcPrice)
+        .then(setSatsAmount);
     } else {
       setSatsAmount(0);
     }
-  }, [
-    form.watch("amount"),
-    form.watch("currency"),
-    btcPrice,
-    exchangeRates,
-    setSatsAmount,
-  ]);
+  }, [form.watch("amount"), form.watch("currency"), btcPrice, exchangeRates, setSatsAmount]);
 
   async function onSubmit(values: PaymentFormValues) {
     // Store the values in the global state
@@ -113,10 +113,8 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
 
       if (responseData.message === "Successful" && responseData.data) {
         const { data } = responseData;
-
         // Store the invoice hash for the QR code component to use
         setInvoice(data.invoiceHash);
-
         setStage("qrcode");
         onSuccess?.();
       } else {
@@ -127,6 +125,68 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
       form.setError("root", {
         type: "submit",
         message: "Failed to create payment. Please try again.",
+      });
+    }
+  }
+
+  async function handleSubmitPayment() {
+    const values = form.getValues();
+    try {
+      // First initiate the payment
+      const initiateResponse = await fetch("/api/payment/initiate-payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phoneNumber: values.phoneNumber,
+          amount: values.amount,
+          emailAddress: values.email,
+          fullName: "", // Optional
+          currencyCode: values.currency,
+          countryCode: "CM", // Default to Cameroon
+          paymentMode: "OM", // Default to Orange Money
+        }),
+      });
+
+      if (!initiateResponse.ok) {
+        const errorData = await initiateResponse.json();
+        throw new Error(errorData.error || "Failed to initiate payment");
+      }
+
+      const initiateData = await initiateResponse.json();
+      console.log("Payment initiated:", initiateData);
+
+      // After initiating payment, verify the reference
+      const verifyResponse = await fetch("/api/payment/verify-reference", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reference: initiateData.data.reference,
+        }),
+      });
+
+      if (!verifyResponse.ok) {
+        const errorData = await verifyResponse.json();
+        throw new Error(errorData.error || "Failed to verify payment");
+      }
+
+      const verifyData = await verifyResponse.json();
+      console.log("Payment verification:", verifyData);
+
+      if (verifyData.data?.status === "confirmed") {
+        setStage("success");
+        onSuccess?.();
+      } else {
+        throw new Error("Payment not confirmed");
+      }
+    } catch (error) {
+      console.error("Payment submission failed:", error);
+      form.setError("root", {
+        type: "submit",
+        message: "Payment failed. Please try again.",
       });
     }
   }
@@ -155,18 +215,18 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleSubmitPayment)} className="space-y-4">
           <div className="flex justify-center gap-4">
             <FormField
               control={form.control}
               name="amount"
               render={({ field }) => (
                 <FormItem className="col-span-1">
-                  <FormLabel>Amount</FormLabel>
+                  <FormLabel>Montant</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter amount"
+                      placeholder="Entrez le montant"
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
@@ -184,14 +244,14 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
               name="currency"
               render={({ field }) => (
                 <FormItem className="col-span-1">
-                  <FormLabel>Currency</FormLabel>
+                  <FormLabel>Devise</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select currency" />
+                        <SelectValue placeholder="Sélectionnez une devise" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -216,9 +276,13 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
             name="phoneNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Sent to</FormLabel>
+                <FormLabel>Envoyé à</FormLabel>
                 <FormControl>
-                  <Input placeholder="Phone number" {...field} />
+                  <Input 
+                    placeholder="Numéro de téléphone" 
+                    {...field}
+                    disabled={!!phone} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -232,7 +296,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
               <FormItem>
                 <FormLabel>Motif</FormLabel>
                 <FormControl>
-                  <Input placeholder="What is this payment for?" {...field} />
+                  <Input placeholder="Pour quoi est ce paiement ?" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -244,10 +308,10 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Your email</FormLabel>
+                <FormLabel>Votre email</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="For payment receipt"
+                    placeholder="Pour le reçu de paiement"
                     type="email"
                     {...field}
                   />
@@ -258,7 +322,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
           />
 
           <Button type="submit" className="w-full mt-6">
-            Confirm
+            Confirmer
           </Button>
         </form>
       </Form>
