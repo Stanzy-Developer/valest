@@ -1,0 +1,96 @@
+---
+description: 
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+# Project Best Practices
+
+## Next.js Development
+
+- Utilize the App Router for improved performance and simpler data fetching
+- Implement server-side rendering for better SEO and initial load times
+- Use `next/image` for optimized image loading
+- Leverage `next/font` for font optimization
+- Use functional components with hooks instead of class components
+- Implement proper state management using Context API or external libraries like zustand
+- Utilize memoization techniques like `useMemo` and `useCallback` for performance optimization
+- Follow the single responsibility principle for components
+
+### Technical Preferences @(next-js-preferences)
+
+- **Always use Next.js 15** for all projects
+- **Always use Tailwind CSS v4** for styling
+- **Always use shadcn/ui for all UI components** wherever applicable
+- Always use kebab-case for component names (e.g. my-component.tsx)
+- Favour using React Server Components and Next.js SSR features where possible
+- Minimize the usage of client components ('use client') to small, isolated components
+- Always add loading and error states to data fetching components
+- Implement error handling and error logging
+- Use semantic HTML elements where possible
+
+### General Preferences @(general-preferences)
+
+- Follow user requirements carefully & to the letter
+- Always write correct, up-to-date, bug-free, fully functional and working, secure, performant and efficient code
+- Focus on readability over being performant
+- Fully implement all requested functionality
+- Leave NO todo's, placeholders or missing pieces in the code
+- Reference file names when discussing code
+- Be concise and minimize prose
+- If you think there might not be a correct answer, say so. If you do not know the answer, say so instead of guessing
+- **Follow this rule file when interacting with AI tools** for consistency and best practices
+
+## Supabase Integration @(supabase-integration)
+
+### Database Functions @(create-db-functions)
+- Default to `SECURITY INVOKER` for functions to run with the permissions of the invoking user
+- Always set `search_path` to an empty string to avoid unexpected behavior
+- Use fully qualified names for all database objects referenced within functions
+- Minimize side effects and prefer functions that return results over those that modify data
+- Use explicit typing for input and output types
+- Default to `IMMUTABLE` or `STABLE` functions where possible for better optimization
+
+### Database Migrations @(create-migration)
+- Use the naming convention `YYYYMMDDHHmmss_short_description.sql` for migration files
+- Include a header comment with metadata about the migration
+- Add thorough comments explaining each migration step
+- Enable Row Level Security (RLS) when creating new tables
+- Ensure RLS policies cover all relevant access scenarios
+- Keep RLS policies granular (one policy per operation and role)
+
+### Row Level Security (RLS) Policies @(create-rls-policies)
+- Use `auth.uid()` instead of `current_user` in policies
+- Ensure SELECT policies have USING but not WITH CHECK
+- Ensure INSERT policies have WITH CHECK but not USING
+- Ensure UPDATE policies have both WITH CHECK and USING
+- Ensure DELETE policies have USING but not WITH CHECK
+- Separate policies for different operations (SELECT, INSERT, UPDATE, DELETE)
+- Use descriptive policy names enclosed in double quotes
+- Prefer PERMISSIVE policies over RESTRICTIVE policies
+- Add indexes on columns used within policies for better performance
+- Use `select` with functions like `auth.uid()` and `auth.jwt()` for optimization
+- Minimize joins in policies where possible
+- Always specify roles in policies using the TO operator
+
+### SQL Style Guide @(postgres-sql-style-guide)
+- Use lowercase for SQL reserved words
+- Use descriptive identifiers for database objects
+- Store dates in ISO 8601 format
+- Use snake_case for tables and columns
+- Prefer plurals for table names and singular for columns
+- Always add an `id` column of type `identity generated always` unless otherwise specified
+- Format queries for readability with appropriate spacing and indentation
+- Use CTEs for complex queries and add comments to each block
+- Use meaningful aliases with the 'as' keyword
+
+### Supabase Edge Functions @(writing-supabase-edge-functions)
+- Use Web APIs and Deno's core APIs instead of external dependencies
+- Place utility methods in `supabase/functions/_shared` for reuse
+- Never use bare specifiers when importing dependencies, prefix with `npm:` or `jsr:`
+- Always define a version for external imports
+- Use `Deno.serve` instead of importing serve from external sources
+- Handle multiple routes within a single Edge Function using libraries like Express or Hono
+- Use `EdgeRuntime.waitUntil(promise)` for long-running background tasks
+
+
+
