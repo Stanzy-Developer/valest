@@ -22,7 +22,7 @@ async function getAuthToken() {
 
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to authenticate" },
+      { error: "Failed to authenticate: " + error },
       { status: 500 }
     );
   }
