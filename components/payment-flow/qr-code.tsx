@@ -26,6 +26,9 @@ export function QRCode({ onSuccess }: QRCodeProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [isQrCodeLoading, setIsQrCodeLoading] = useState(true);
   const [qrCodeError, setQrCodeError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     if (invoice) {
@@ -46,7 +49,41 @@ export function QRCode({ onSuccess }: QRCodeProps) {
     }
   }, [invoice]);
 
+  const handleCopyInvoice = async () => {
+    if (invoice) {
+      try {
+        await navigator.clipboard.writeText(invoice);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      } catch (err) {
+        console.error("Failed to copy:", err);
+      }
+    }
+  };
+
+  const handleShare = async () => {
+    if (!navigator.share) return;
+    
+    setIsSharing(true);
+    try {
+      await navigator.share({
+        title: "Bitcoin Lightning Payment",
+        text: `Payment of ${selectedCurrency.symbol}${amount} ${selectedCurrency.code}`,
+        url: window.location.href,
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        console.error("Failed to share:", err);
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   async function simulatePayment() {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    
     try {
       const paymentReference = `VLT-${Math.floor(Math.random() * 1000000)}`;
       
@@ -86,6 +123,8 @@ export function QRCode({ onSuccess }: QRCodeProps) {
     } catch (error) {
       console.error("Error processing payment:", error);
       setQrCodeError("Failed to process payment. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
   }
 
@@ -149,26 +188,32 @@ export function QRCode({ onSuccess }: QRCodeProps) {
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: "Bitcoin Lightning Payment",
-                  text: `Payment of ${selectedCurrency.symbol}${amount} ${selectedCurrency.code}`,
-                  url: window.location.href,
-                });
-              }
-            }}
+            onClick={handleShare}
+            disabled={!navigator.share || isSharing}
           >
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
+            {isSharing ? (
+              <span className="animate-pulse">Sharing...</span>
+            ) : (
+              <>
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </>
+            )}
           </Button>
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => navigator.clipboard.writeText(invoice || "")}
+            onClick={handleCopyInvoice}
+            disabled={isCopied}
           >
-            <Copy className="h-4 w-4 mr-2" />
-            Copy code
+            {isCopied ? (
+              <span className="text-green-600">Copied!</span>
+            ) : (
+              <>
+                <Copy className="h-4 w-4 mr-2" />
+                Copy code
+              </>
+            )}
           </Button>
         </div>
 
@@ -195,9 +240,22 @@ export function QRCode({ onSuccess }: QRCodeProps) {
         </div>
 
         {/* For demo purposes only */}
-        <Button className="mt-8 w-full" onClick={simulatePayment}>
-          Pay with Valest
-          <ArrowRight className="ml-2 h-4 w-4" />
+        <Button 
+          className="mt-8 w-full" 
+          onClick={simulatePayment}
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <div className="flex items-center justify-center">
+              <span className="mr-2">Processing payment</span>
+              <span className="animate-spin">⚡</span>
+            </div>
+          ) : (
+            <>
+              Pay with Valest
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
         </Button>
       </div>
     </div>

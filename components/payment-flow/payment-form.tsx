@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -58,6 +58,8 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
       email: "",
     },
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mettre à jour le store avec le numéro de téléphone initial
   useEffect(() => {
@@ -134,6 +136,9 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
   }
 
   async function handleSubmitPayment() {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    
     const values = form.getValues();
     try {
       // First initiate the payment
@@ -192,6 +197,8 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
         type: "submit",
         message: "Payment failed. Please try again.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -325,8 +332,20 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
             )}
           />
 
-          <Button type="submit" className="w-full mt-6" onClick={() => handleSubmitPayment()}>
-            Confirmer
+          <Button 
+            type="submit" 
+            className="w-full mt-6" 
+            onClick={() => handleSubmitPayment()}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="mr-2">Processing...</span>
+                <span className="animate-spin">⚡</span>
+              </>
+            ) : (
+              "Confirmer"
+            )}
           </Button>
         </form>
       </Form>
