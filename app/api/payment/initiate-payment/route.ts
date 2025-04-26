@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "crypto";
+
 
 async function getAuthToken() {
   try {
@@ -22,7 +22,7 @@ async function getAuthToken() {
 
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to authenticate: " + error },
+      { error: "Failed to authenticate" },
       { status: 500 }
     );
   }
@@ -39,10 +39,24 @@ export async function POST(request: NextRequest) {
     // Get authentication token
     const authResponse = await getAuthToken();
     const token = authResponse?.accessToken;
-    console.log("Token:", token);
 
-    const body = await request.json();
+    const body1 = await request.json();
+    const payloadObject = {
+      "phoneNumber": body1.phoneNumber,
+      "transactionType": "payin", // payin (collection) or payout (disbursement)
+      "amount": body1.amount as string,
+      "fullName": body1.fullName,
+      "emailAddress": body1.emailAddress,
+      "currencyCode": body1.currencyCode || "XAF", // example: XAF
+      "countryCode": body1.countryCode || "CM", // example: CM
+      "paymentMode": body1.paymentMode || "OM", // MOMO (MTN mobile money) or OM (Orange Money)
+      "externalReference": crypto.randomUUID(), // Your unique transaction reference
+      "featureCode": "PRO" // example: PRO
+    }
 
+    console.log("Payload object:", payloadObject);
+    console.log("Payload object:", JSON.stringify(payloadObject));
+    
     const response = await fetch(
       `${sandbox_url}/api/v1/transactions/initiate-momo-payment`,
       {
@@ -53,18 +67,7 @@ export async function POST(request: NextRequest) {
           "client-secret": process.env.EJARA_MOMO_CLIENT_SECRET!,
           "client-key": process.env.EJARA_MOMO_CLIENT_KEY!,
         },
-        body: JSON.stringify({
-          phoneNumber: body.phoneNumber,
-          transactionType: "payin",
-          amount: body.amount,
-          fullName: body.fullName,
-          emailAddress: body.emailAddress,
-          currencyCode: body.currencyCode || "XAF",
-          countryCode: body.countryCode || "CM",
-          paymentMode: body.paymentMode || "OM",
-          externalReference: randomUUID(),
-          featureCode: "PRO"
-        })
+        body: JSON.stringify(payloadObject),
       }
     );
 
