@@ -1,15 +1,9 @@
-import { Suspense } from "react";
-import PaymentFlow from "@/components/payment-flow";
-import { PaymentFlowSkeleton } from "@/components/payment-flow/skeleton";
+import React from 'react'
 
-export default function Home() {
+function page() {
   return (
-    <div className="h-screen">
-      <main className="h-full">
-        <Suspense fallback={<PaymentFlowSkeleton />}>
-          <PaymentFlow />
-        </Suspense>
-      </main>
-    </div>
-  );
+    <div>page</div>
+  )
 }
+
+export default page

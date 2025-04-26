@@ -117,22 +117,6 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
         // Store the invoice hash for the QR code component to use
         setInvoice(data.invoiceHash);
 
-        // If you need to store the complete invoice data in a structured way:
-        // Format API response to match the expected InvoiceData structure
-        // Note: For this to work properly, usePaymentStore should expose setInvoiceData
-        // const formattedInvoice = {
-        //   id: data.invoiceReferenceId,
-        //   paymentRequest: data.invoiceHash,
-        //   amount: data.originalAmount,
-        //   amountCurrency: data.amountCurrency,
-        //   description: data.description,
-        //   reference: data.reference,
-        //   expiresAt: data.expiryDate,
-        //   status: data.status,
-        //   createdAt: new Date().toISOString(),
-        // };
-        // usePaymentStore.getState().setInvoiceData(formattedInvoice);
-
         setStage("qrcode");
         onSuccess?.();
       } else {
@@ -172,7 +156,7 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex justify-center gap-4">
             <FormField
               control={form.control}
               name="amount"
@@ -274,17 +258,8 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
           />
 
           <Button type="submit" className="w-full mt-6">
-            Pay
+            Confirm
           </Button>
-
-          <div className="flex justify-between text-sm mt-4">
-            <Button variant="link" className="p-0 h-auto" asChild>
-              <a href="/auth/sign-up">create account</a>
-            </Button>
-            <Button variant="link" className="p-0 h-auto" asChild>
-              <a href="/auth/login">login</a>
-            </Button>
-          </div>
         </form>
       </Form>
     </div>
