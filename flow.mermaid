@@ -1,0 +1,26 @@
+```mermaid
+sequenceDiagram
+    participant User
+    participant ValestApp
+    participant EjaraWallet
+    participant EjaraLightningAPI
+    participant EjaraPaymentAPI
+    participant MobileMoney
+
+    Note over User,EjaraWallet: User has Ejara Wallet with BTC
+
+    User->>ValestApp: 1. Enter merchant details<br/>(phone + amount in FCFA)
+    ValestApp->>EjaraLightningAPI: 2. Create invoice request
+    EjaraLightningAPI-->>ValestApp: 3. Return invoice details
+    ValestApp-->>User: 4. Show payment QR code/invoice
+    User->>EjaraWallet: 5. Scan QR code
+    EjaraWallet->>EjaraLightningAPI: 6. Pay invoice
+    EjaraLightningAPI-->>EjaraWallet: 7. Payment confirmation
+    EjaraLightningAPI->>ValestApp: 8. Webhook notification
+    ValestApp->>EjaraPaymentAPI: 9. Initiate mobile money transfer
+    EjaraPaymentAPI->>MobileMoney: 10. Send money to merchant
+    MobileMoney-->>EjaraPaymentAPI: 11. Transfer confirmation
+    EjaraPaymentAPI-->>ValestApp: 12. Transaction status
+    ValestApp-->>User: 13. Payment complete notification
+
+```
