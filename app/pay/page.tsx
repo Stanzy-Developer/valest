@@ -1,4 +1,4 @@
-import PaymentForm from '@/components/payment/form'
+import PaymentForm from '@/components/payment/Form'
 import React from 'react'
 
 export default function page() {
