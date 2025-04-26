@@ -5,6 +5,8 @@ interface PaymentStore {
   // User input
   amount: string
   phoneNumber: string
+  email: string
+  motif: string
 
   // UI state
   stage: "form" | "qrcode" | "success"
@@ -30,6 +32,8 @@ interface PaymentStore {
   // User input actions
   setAmount: (amount: string) => void
   setPhoneNumber: (phoneNumber: string) => void
+  setEmail: (email: string) => void
+  setMotif: (motif: string) => void
 
   // Payment data actions
   setInvoice: (invoice: string | null) => void
@@ -51,6 +55,8 @@ export const usePaymentStore = create<PaymentStore>((set) => ({
   // User input - initial values
   amount: "",
   phoneNumber: "",
+  email: "",
+  motif: "",
 
   // UI state - initial values
   stage: "form",
@@ -76,6 +82,8 @@ export const usePaymentStore = create<PaymentStore>((set) => ({
   // User input actions
   setAmount: (amount) => set({ amount }),
   setPhoneNumber: (phoneNumber) => set({ phoneNumber }),
+  setEmail: (email) => set({ email }),
+  setMotif: (motif) => set({ motif }),
 
   // Payment data actions
   setInvoice: (invoice) => set({ invoice }),
@@ -92,6 +100,8 @@ export const usePaymentStore = create<PaymentStore>((set) => ({
   resetPayment: () => set({
     amount: "",
     phoneNumber: "",
+    email: "",
+    motif: "",
     stage: "form",
     invoice: null,
     error: null,

@@ -44,6 +44,8 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
     dataSource,
     setAmount,
     setPhoneNumber,
+    setEmail,
+    setMotif,
   } = usePaymentStore();
 
   const form = useForm<PaymentFormValues>({
@@ -88,6 +90,8 @@ export function PaymentForm({ onSuccess }: PaymentFormProps) {
     // Store the values in the global state
     setAmount(values.amount);
     setPhoneNumber(values.phoneNumber);
+    setEmail(values.email);
+    setMotif(values.motif);
 
     try {
       // Call the API to create an invoice

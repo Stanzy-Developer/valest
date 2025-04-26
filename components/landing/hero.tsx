@@ -46,7 +46,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="dark relative border-b border-muted bg-background pt-10 px-4 lg:px-16">
+    <section className="dark min-h-screen relative border-b border-muted bg-background pt-10 px-4 lg:px-16">
       <FloatingPaths position={1} />
       <FloatingPaths position={-1} />
       <a href="payment"className="absolute z-10 top-4 right-4 lg:right-8 py-2 px-4 rounded text-primary bg-black">Pay Now</a>

@@ -18,7 +18,9 @@ export function QRCode({ onSuccess }: QRCodeProps) {
     dataSource,
     setStage,
     amount,
-    phoneNumber,  // Add phoneNumber from store
+    phoneNumber,
+    email,
+    motif,
   } = usePaymentStore();
 
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
@@ -31,7 +33,6 @@ export function QRCode({ onSuccess }: QRCodeProps) {
       setQrCodeError(null);
 
       try {
-        // Generate QR code URL using our utility function
         const url = generateQrCodeUrl(invoice, 200);
         setQrCodeUrl(url);
       } catch (error) {
@@ -46,15 +47,46 @@ export function QRCode({ onSuccess }: QRCodeProps) {
   }, [invoice]);
 
   async function simulatePayment() {
-    setStage("success");
-    if (phoneNumber) {
-      await sendSMS(
-        "Valest",
-        `Payment of ${selectedCurrency.symbol}${amount} ${selectedCurrency.code} was successful!. VALEST`,
-        phoneNumber
-      );
+    try {
+      const paymentReference = `VLT-${Math.floor(Math.random() * 1000000)}`;
+      
+      // Envoyer l'email de reçu
+      const emailResponse = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          amount,
+          currency: selectedCurrency.code,
+          currencySymbol: selectedCurrency.symbol,
+          phoneNumber,
+          reference: paymentReference,
+          motif,
+          satsAmount,
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        throw new Error('Failed to send email receipt');
+      }
+
+      // Envoyer le SMS de confirmation
+      if (phoneNumber) {
+        await sendSMS(
+          "Valest",
+          `Payment of ${selectedCurrency.symbol}${amount} ${selectedCurrency.code} was successful! Ref: ${paymentReference}. VALEST`,
+          phoneNumber
+        );
+      }
+
+      setStage("success");
+      onSuccess?.();
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      setQrCodeError("Failed to process payment. Please try again.");
     }
-    onSuccess?.();
   }
 
   // Format invoice display
