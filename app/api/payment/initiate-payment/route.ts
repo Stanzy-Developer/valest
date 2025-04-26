@@ -52,7 +52,6 @@ export async function POST(request: NextRequest) {
           "Authorization": `Bearer ${token}`,
           "client-secret": process.env.EJARA_MOMO_CLIENT_SECRET!,
           "client-key": process.env.EJARA_MOMO_CLIENT_KEY!,
-          ""
         },
         body: JSON.stringify({
           phoneNumber: body.phoneNumber,
